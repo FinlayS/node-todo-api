@@ -16,7 +16,7 @@ MongoClient.connect(uri, { useNewUrlParser: true }, (err, client) => {
 
     db.collection('Todos').insertOne({
         text: 'Something to do 2',
-        completed: 'true'
+        completed: true
     }, (err, result) => {
         if (err) {
             return console.log('Unable to insert todo', err);
