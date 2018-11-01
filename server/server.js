@@ -1,54 +1,25 @@
-var mongoose = require('mongoose');
+var express = require('express');
+var bodyParser = require('body-parser');
 
-mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost:27017/TodoApp');
+var {mongoose} = require('./db/mongoose');
+var {Todo} = require('./models/todo');
+var {User} = require('./models/user');
 
-var Todo = mongoose.model('Todo', {
-    text: {
-        type: String,
-        required: true,
-        minlength: 1,
-        trim: true
-    },
-    completed: {
-        type: Boolean,
-        default: false
+var app = express();
 
-    },
-    completedAt: {
-        type: Number,
-        default: null
-    }
+app.use(bodyParser.json());
+
+app.post('/todos', (req, res) => {
+    var todo = new Todo({
+        text: req.body.text
+    })
+    todo.save().then((doc) => {
+        res.send(doc);
+    }, (e) => {
+        res.status(400).send(e);
+    })
 });
 
-var User =mongoose.model('User', {
-    email: {
-        type: String,
-        minlength: 1,
-        required: true,
-        trim: true
-    }
-})
-
-// var anotherNewTodo = new Todo({
-//     text: '    returns      '
-// });
-//
-// anotherNewTodo.save().then((doc) => {
-//     console.log(JSON.stringify(doc, undefined, 2))
-// }, (e) => {
-//     console.log('There was an error', e)
-// })
-
-
-///  new user model:
-// CHALLANGE
-var newUser = new User({
-    email: 'user1@1.com'
+app.listen(3000, () => {
+    console.log('Started on port 3000');
 });
-
-newUser.save().then((doc) => {
-    console.log(JSON.stringify(doc, undefined, 2))
-}, (e) => {
-    console.log('Another bloddy error', e)
-})
