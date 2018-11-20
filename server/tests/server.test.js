@@ -4,6 +4,7 @@ const {ObjectId} = require('mongodb')
 
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
+const {User} = require('./../models/user');
 const {todos, populateTodos, users, populateUsers} = require('./seed/seed');
 const validTodoObject = new ObjectId();
 
@@ -175,7 +176,78 @@ describe('GET /Users/me', () => {
             .end(done);
     });
 
-    it.skip('Should return 401 if not authenticated', (done) => {
-
+    it('Should return 401 if not authenticated', (done) => {
+        request(app)
+            .get('/users/me')
+            .expect(401)
+            .expect((res) => {
+                expect(res.body).toEqual({});
+            })
+            .end(done);
     });
 });
+
+describe('POST /users', () => {
+    it('Should create a user', (done) => {
+        var email = 'example@example.com';
+        var password = '123abc!';
+
+        request(app)
+            .post('/users')
+            .send({email, password})
+            .expect(200)
+            .expect((res) => {
+                expect(res.header['x-auth']).toExist();
+                expect(res.body._id).toExist();
+                expect(res.body.email).toBe(email);
+            })
+            .end((err) => {
+            if(err) {
+                return done(err);
+            }
+            User.findOne({email}).then((user) => {
+                expect(user).toExist();
+                expect(user.password).toNotBe(password);
+                done();
+            })
+            });
+
+    });
+
+    it('Should should return validation errors if request invalid', (done) => {
+        //var email = '@example.cob';
+        //var password = 'abc!';
+
+        request(app)
+            .post('/users')
+            .send({
+                email: '@example.cob',
+                password: 'abc!'
+            })
+            .expect(400)
+            .expect((res) => {
+                expect(res.body.errors.password.name).toEqual('ValidatorError');
+                expect(res.body.errors.email.name).toEqual('ValidatorError');
+            })
+            .end(done)
+    });
+
+    it('Should not create user if email in use', (done) => {
+        //var email = 'bob60@bob.com';
+        //var password = 'bobWord!';
+
+        request(app)
+            .post('/users')
+            .send({
+                email: users[0].email,
+                password: 'Passw0rd'
+            })
+            .expect(400)
+            .expect((res) => {
+                expect(res.body.errmsg).toContain('duplicate key error');
+            })
+            .end(done)
+
+    })
+
+})
