@@ -215,9 +215,6 @@ describe('POST /users', () => {
     });
 
     it('Should should return validation errors if request invalid', (done) => {
-        //var email = '@example.cob';
-        //var password = 'abc!';
-
         request(app)
             .post('/users')
             .send({
@@ -233,9 +230,6 @@ describe('POST /users', () => {
     });
 
     it('Should not create user if email in use', (done) => {
-        //var email = 'bob60@bob.com';
-        //var password = 'bobWord!';
-
         request(app)
             .post('/users')
             .send({
